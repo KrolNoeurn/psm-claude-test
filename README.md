@@ -23,7 +23,7 @@ backend/
     accounts/        Branch, User (role + branch), JWT login, /api/auth/me/
     catalog/         Product, Unit, ProductUnit (box/strip/tablet), PriceTier, ProductPrice
     inventory/       StockBatch (batch + expiry), StockMovement ledger, FEFO services
-    purchasing/      Phase 1: suppliers, purchase orders, goods receipt
+    purchasing/      Supplier, PurchaseOrder, GoodsReceipt (posts stock into batches)
     sales/           Phase 1: retail POS; Phase 2: wholesale orders and invoices
     customers/       Phase 2
     prescriptions/   Phase 2
@@ -32,7 +32,8 @@ backend/
 frontend/
   src/api            axios client with JWT refresh
   src/stores         Pinia stores
-  src/views          Login, Dashboard, Products, Stock & Expiry, POS (placeholder)
+  src/views          Login, Dashboard, Products, Stock & Expiry, POS (placeholder),
+                     purchasing/ (suppliers, purchase orders, goods receipts)
   src/i18n           Khmer and English text
 ```
 
@@ -42,6 +43,19 @@ frontend/
 - Stock only changes through `apps/inventory/services.py`, which locks the batch rows, runs in a transaction and writes a `StockMovement` row.
 - Selling uses **FEFO** (First Expiry, First Out) and never issues an expired batch.
 - Each product has exactly one base unit (database constraint), and a batch can never go below zero.
+
+## Purchasing flow
+
+1. **Supplier** (`/api/suppliers/`): code, contact, credit days. A supplier with documents cannot be deleted, only made inactive.
+2. **Purchase order** (`/api/purchase-orders/`): lines in any unit of the product (box, strip, tablet). Status: `draft` → `ordered` (`POST .../submit/`) → `partial` → `received`. A draft can be edited or deleted; an ordered PO with nothing received can be cancelled (`.../cancel/`); a partial PO can be closed when the rest will not come (`.../close/`).
+3. **Goods receipt** (`POST /api/goods-receipts/`): each line has a unit, quantity, cost per unit, **batch no.** and **expiry date**. Posting it, in one transaction:
+   - converts the quantity and cost to base units (e.g. 2 boxes at 12.00 = 200 tablets at 0.12),
+   - creates or tops up the `StockBatch` and writes a `receipt` row to the `StockMovement` ledger (`ref_type=goods_receipt`, `ref_id=GRN-…`),
+   - updates how much of each PO line is received and the PO status.
+   It is rejected, with nothing saved, if a batch is already expired, if it would receive more than is still on order, or if the batch number already exists with another expiry date. Receipts are never edited; fix mistakes with a stock adjustment.
+   A receipt without a PO is allowed (for walk-in purchases).
+
+Anyone signed in can read purchasing data; only the admin, manager, pharmacist and stock keeper roles can create or change it.
 
 ## Run locally (without Docker)
 

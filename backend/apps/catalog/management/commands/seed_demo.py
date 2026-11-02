@@ -1,5 +1,5 @@
 """Load a small demo dataset: one branch, an admin user, units, price tiers,
-two products with box/strip/tablet units, and a few stock batches."""
+two products with box/strip/tablet units, a few stock batches and a supplier."""
 
 from datetime import timedelta
 from decimal import Decimal
@@ -11,6 +11,7 @@ from django.utils import timezone
 from apps.accounts.models import Branch, User
 from apps.catalog.models import PriceTier, Product, ProductPrice, ProductUnit, Unit
 from apps.inventory.services import receive_stock
+from apps.purchasing.models import Supplier
 
 
 class Command(BaseCommand):
@@ -56,5 +57,10 @@ class Command(BaseCommand):
                           expiry_date=today + timedelta(days=45), unit_cost=Decimal("0.15"), qty=300)
             receive_stock(product=product, branch=branch, batch_no=f"{sku}-B",
                           expiry_date=today + timedelta(days=400), unit_cost=Decimal("0.14"), qty=1000)
+
+        Supplier.objects.get_or_create(
+            code="SUP-MK", defaults={"name": "Mekong Pharma Distribution",
+                                     "phone": "023 000 000", "payment_terms_days": 30},
+        )
 
         self.stdout.write(self.style.SUCCESS("Demo data ready. Login: admin / admin12345"))

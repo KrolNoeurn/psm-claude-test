@@ -32,6 +32,10 @@ function logout() {
         <RouterLink :to="{ name: 'pos' }">{{ t('nav.pos') }}</RouterLink>
         <RouterLink :to="{ name: 'products' }">{{ t('nav.products') }}</RouterLink>
         <RouterLink :to="{ name: 'stock' }">{{ t('nav.stock') }}</RouterLink>
+        <div class="nav-group">{{ t('nav.purchasing') }}</div>
+        <RouterLink :to="{ name: 'po-list' }">{{ t('nav.purchaseOrders') }}</RouterLink>
+        <RouterLink :to="{ name: 'grn-list' }">{{ t('nav.goodsReceipts') }}</RouterLink>
+        <RouterLink :to="{ name: 'suppliers' }">{{ t('nav.suppliers') }}</RouterLink>
       </nav>
     </aside>
     <div class="main">

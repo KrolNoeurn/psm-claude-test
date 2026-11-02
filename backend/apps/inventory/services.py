@@ -6,6 +6,7 @@ and writes a StockMovement row, so stock can be audited batch by batch.
 
 from dataclasses import dataclass
 from datetime import date
+from decimal import ROUND_HALF_UP, Decimal
 
 from django.db import transaction
 from django.db.models import Sum
@@ -16,6 +17,10 @@ from .models import StockBatch, StockMovement
 
 class InsufficientStock(Exception):
     """Raised when there is not enough sellable (unexpired) stock."""
+
+
+class BatchMismatch(ValueError):
+    """Raised when a batch number is received again with another expiry date."""
 
 
 @dataclass
@@ -30,14 +35,26 @@ def receive_stock(*, product, branch, batch_no, expiry_date, unit_cost, qty,
     """Add `qty` base units of a batch to a branch (goods receipt)."""
     if qty <= 0:
         raise ValueError("qty must be positive")
-    batch, _ = StockBatch.objects.select_for_update().get_or_create(
+    unit_cost = Decimal(unit_cost)
+    batch, created = StockBatch.objects.select_for_update().get_or_create(
         product=product,
         branch=branch,
         batch_no=batch_no,
         defaults={"expiry_date": expiry_date, "unit_cost": unit_cost},
     )
+    if not created:
+        if batch.expiry_date != expiry_date:
+            raise BatchMismatch(
+                f"Batch {batch_no} of {product} already exists with expiry "
+                f"{batch.expiry_date}, not {expiry_date}"
+            )
+        # Same lot bought again at another price: keep a weighted average cost.
+        on_hand = max(batch.qty_on_hand, 0)
+        batch.unit_cost = (
+            (batch.unit_cost * on_hand + unit_cost * qty) / (on_hand + qty)
+        ).quantize(Decimal("0.0001"), rounding=ROUND_HALF_UP)
     batch.qty_on_hand += qty
-    batch.save(update_fields=["qty_on_hand"])
+    batch.save(update_fields=["qty_on_hand", "unit_cost"])
     StockMovement.objects.create(
         batch=batch, kind=StockMovement.Kind.RECEIPT, qty=qty,
         user=user, ref_type=ref_type, ref_id=str(ref_id),

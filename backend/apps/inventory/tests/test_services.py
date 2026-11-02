@@ -72,3 +72,9 @@ def test_adjust_logs_difference(product, branch):
     services.adjust_stock(batch=batch, new_qty=7, note="count")
     mv = StockMovement.objects.get(kind=StockMovement.Kind.ADJUSTMENT)
     assert mv.qty == -3
+
+
+def test_receiving_known_batch_with_other_expiry_fails(product, branch):
+    receive(product, branch, "A1", date(2027, 6, 1), 10)
+    with pytest.raises(services.BatchMismatch):
+        receive(product, branch, "A1", date(2027, 7, 1), 10)

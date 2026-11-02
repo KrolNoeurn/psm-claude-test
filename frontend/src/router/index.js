@@ -12,6 +12,13 @@ const routes = [
       { path: 'pos', name: 'pos', component: () => import('../views/PosView.vue') },
       { path: 'products', name: 'products', component: () => import('../views/ProductsView.vue') },
       { path: 'stock', name: 'stock', component: () => import('../views/StockView.vue') },
+      { path: 'purchasing/suppliers', name: 'suppliers', component: () => import('../views/purchasing/SuppliersView.vue') },
+      { path: 'purchasing/orders', name: 'po-list', component: () => import('../views/purchasing/PurchaseOrdersView.vue') },
+      { path: 'purchasing/orders/new', name: 'po-new', component: () => import('../views/purchasing/PurchaseOrderFormView.vue') },
+      { path: 'purchasing/orders/:id', name: 'po-detail', component: () => import('../views/purchasing/PurchaseOrderDetailView.vue') },
+      { path: 'purchasing/orders/:id/edit', name: 'po-edit', component: () => import('../views/purchasing/PurchaseOrderFormView.vue') },
+      { path: 'purchasing/receipts', name: 'grn-list', component: () => import('../views/purchasing/GoodsReceiptsView.vue') },
+      { path: 'purchasing/receipts/new', name: 'grn-new', component: () => import('../views/purchasing/GoodsReceiptFormView.vue') },
     ],
   },
 ]
