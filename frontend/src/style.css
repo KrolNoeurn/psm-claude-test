@@ -1,0 +1,44 @@
+:root {
+  font-family: 'Noto Sans Khmer', system-ui, sans-serif;
+  color: #1f2933;
+  background: #f5f7fa;
+  --accent: #0f766e;
+  --border: #d9e2ec;
+}
+* { box-sizing: border-box; }
+body { margin: 0; }
+button { cursor: pointer; }
+
+.shell { display: flex; min-height: 100vh; }
+.sidebar { width: 220px; background: #0b3d3a; color: #fff; padding: 16px; }
+.brand { font-size: 18px; margin: 0 0 24px; }
+.sidebar nav { display: flex; flex-direction: column; gap: 4px; }
+.sidebar a { color: #cde; text-decoration: none; padding: 8px 10px; border-radius: 6px; }
+.sidebar a.router-link-exact-active { background: rgba(255, 255, 255, 0.15); color: #fff; }
+.main { flex: 1; display: flex; flex-direction: column; }
+.topbar { display: flex; align-items: center; gap: 12px; padding: 10px 20px; background: #fff; border-bottom: 1px solid var(--border); }
+.spacer { flex: 1; }
+.link { background: none; border: none; color: var(--accent); }
+.content { padding: 20px; }
+
+.login { min-height: 100vh; display: grid; place-items: center; }
+.card { background: #fff; padding: 32px; border-radius: 12px; width: 340px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06); }
+.card h1 { margin: 0; font-size: 20px; color: var(--accent); }
+.card h2 { margin: 0; font-size: 16px; font-weight: 500; }
+.card label { display: flex; flex-direction: column; gap: 4px; font-size: 14px; }
+.card input, .search { padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; }
+.card button { padding: 10px; border: none; border-radius: 6px; background: var(--accent); color: #fff; font-size: 15px; }
+.error { color: #b91c1c; margin: 0; }
+
+.search { width: 320px; margin-bottom: 12px; }
+.grid { width: 100%; border-collapse: collapse; background: #fff; }
+.grid th, .grid td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); font-size: 14px; }
+.grid tr.expired td { background: #fde8e8; }
+.grid tr.critical td { background: #fff1e6; }
+.grid tr.warning td { background: #fffbea; }
+
+.tiles { display: flex; gap: 16px; }
+.tile { background: #fff; border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; min-width: 200px; display: flex; flex-direction: column; }
+.tile .label { font-size: 13px; color: #52606d; }
+.tile .value { font-size: 28px; font-weight: 600; }
+.tile.warn .value { color: #b45309; }
