@@ -10,6 +10,7 @@ from apps.accounts.views import BranchViewSet, me
 from apps.catalog import views as catalog
 from apps.inventory import views as inventory
 from apps.purchasing import views as purchasing
+from apps.sales import views as sales
 
 router = DefaultRouter()
 router.register("branches", BranchViewSet)
@@ -25,12 +26,16 @@ router.register("stock/movements", inventory.StockMovementViewSet)
 router.register("suppliers", purchasing.SupplierViewSet)
 router.register("purchase-orders", purchasing.PurchaseOrderViewSet)
 router.register("goods-receipts", purchasing.GoodsReceiptViewSet)
+router.register("sales", sales.SaleViewSet)
+router.register("exchange-rates", sales.ExchangeRateViewSet)
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/auth/token/", TokenObtainPairView.as_view(), name="token_obtain"),
     path("api/auth/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     path("api/auth/me/", me, name="me"),
+    path("api/pos/catalog/", sales.pos_catalog, name="pos_catalog"),
+    path("api/shop-settings/", sales.shop_settings, name="shop_settings"),
     path("api/", include(router.urls)),
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path("api/docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="docs"),

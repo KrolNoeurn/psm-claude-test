@@ -4,6 +4,7 @@ two products with box/strip/tablet units, a few stock batches and a supplier."""
 from datetime import timedelta
 from decimal import Decimal
 
+from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from django.db import transaction
 from django.utils import timezone
@@ -20,11 +21,16 @@ class Command(BaseCommand):
     @transaction.atomic
     def handle(self, *args, **options):
         branch, _ = Branch.objects.get_or_create(code="PP1", defaults={"name": "Phnom Penh 1"})
+        if not User.objects.filter(username="cashier").exists():
+            User.objects.create_user(
+                "cashier", password="cashier12345", role=User.Role.CASHIER, branch=branch
+            )
         if not User.objects.filter(username="admin").exists():
             User.objects.create_superuser(
                 "admin", password="admin12345", role=User.Role.ADMIN, branch=branch
             )
 
+        call_command("setup_shop")
         tablet, _ = Unit.objects.get_or_create(name="Tablet", defaults={"name_km": "គ្រាប់"})
         strip, _ = Unit.objects.get_or_create(name="Strip", defaults={"name_km": "បន្ទះ"})
         box, _ = Unit.objects.get_or_create(name="Box", defaults={"name_km": "ប្រអប់"})
@@ -47,9 +53,12 @@ class Command(BaseCommand):
             )
             if not created:
                 continue
-            u_tab = ProductUnit.objects.create(product=product, unit=tablet, factor=1, is_base=True)
-            u_strip = ProductUnit.objects.create(product=product, unit=strip, factor=10)
-            u_box = ProductUnit.objects.create(product=product, unit=box, factor=100)
+            u_tab = ProductUnit.objects.create(product=product, unit=tablet, factor=1, is_base=True,
+                                               barcode=f"{sku}T")
+            u_strip = ProductUnit.objects.create(product=product, unit=strip, factor=10,
+                                                 barcode=f"{sku}S")
+            u_box = ProductUnit.objects.create(product=product, unit=box, factor=100,
+                                               barcode=f"{sku}B")
             ProductPrice.objects.create(product_unit=u_tab, tier=retail, price=Decimal(tab_price))
             ProductPrice.objects.create(product_unit=u_strip, tier=retail, price=Decimal(strip_price))
             ProductPrice.objects.create(product_unit=u_box, tier=whole, price=Decimal(box_ws))
@@ -63,4 +72,4 @@ class Command(BaseCommand):
                                      "phone": "023 000 000", "payment_terms_days": 30},
         )
 
-        self.stdout.write(self.style.SUCCESS("Demo data ready. Login: admin / admin12345"))
+        self.stdout.write(self.style.SUCCESS("Demo data ready. Login: admin / admin12345 or cashier / cashier12345"))

@@ -10,7 +10,7 @@ const expiringCount = ref('–')
 onMounted(async () => {
   const [products, expiring] = await Promise.all([
     http.get('/products/'),
-    http.get('/stock/batches/expiring/', { params: { days: 90 } }),
+    http.get('/stock/batches/expiring/', { params: { days: 30 } }),
   ])
   productCount.value = products.data.count
   expiringCount.value = expiring.data.count
