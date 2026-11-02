@@ -24,7 +24,7 @@ backend/
     catalog/         Product, Unit, ProductUnit (box/strip/tablet), PriceTier, ProductPrice
     inventory/       StockBatch (batch + expiry), StockMovement ledger, FEFO services
     purchasing/      Supplier, PurchaseOrder, GoodsReceipt (posts stock into batches)
-    sales/           Phase 1: retail POS; Phase 2: wholesale orders and invoices
+    sales/           Retail POS: Sale, Payment (cash $/៛, KHQR), FEFO checkout, void, shop settings, exchange rate
     customers/       Phase 2
     prescriptions/   Phase 2
     finance/         Phase 2: payments, KHR/USD
@@ -32,7 +32,7 @@ backend/
 frontend/
   src/api            axios client with JWT refresh
   src/stores         Pinia stores
-  src/views          Login, Dashboard, Products, Stock & Expiry, POS (placeholder),
+  src/views          Login, Dashboard, Products, Stock & Expiry, POS (offline queue, 80/58 mm receipt),
                      purchasing/ (suppliers, purchase orders, goods receipts)
   src/i18n           Khmer and English text
 ```
@@ -57,6 +57,16 @@ frontend/
 
 Anyone signed in can read purchasing data; only the admin, manager, pharmacist and stock keeper roles can create or change it.
 
+## Retail POS
+
+- **Sell**: scan a barcode (the scanner types it and presses Enter) or type a name. Each line can switch unit (tablet / strip / box…); the retail price is the highest quantity break reached.
+- **Pay**: cash in dollars, cash in riel (rounded to 100 ៛), or KHQR (the cashier confirms the payment arrived; automatic confirmation needs the shop's Bakong/ABA merchant account). Payments can be split; change is shown in $ and ៛.
+- **Controlled drugs** need a pharmacist: a pharmacist, manager or admin cashier sells directly; anyone else enters a pharmacist's login at payment.
+- **Offline**: the price list is cached in the browser. If the internet drops, the sale is saved on the device with a `client_uuid` and sent automatically when the connection is back (sending twice never creates two sales). Sales the server rejects (e.g. stock ran out) stay listed on the POS for a manager.
+- **Receipt**: Khmer + English, 80 mm or 58 mm (shop settings), printed with the browser's print.
+- **Void** (`POST /api/sales/{id}/void/`, managers only) puts stock back into the same batches.
+- **Settings**: `GET/PATCH /api/shop-settings/` (receipt header, width, VAT on/off and rate, expiry alert days, default 30) and `POST /api/exchange-rates/` (managers).
+
 ## Run locally (without Docker)
 
 Backend:
@@ -66,7 +76,8 @@ cd backend
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 python manage.py migrate
-python manage.py seed_demo        # demo data, login admin / admin12345
+python manage.py setup_shop       # units, Retail tier, shop settings, exchange rate
+python manage.py seed_demo        # demo data, login admin / admin12345 or cashier / cashier12345
 python manage.py runserver
 ```
 
